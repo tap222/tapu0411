@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/services/auth.service';
 import { ChaosToggleComponent } from '../chaos-toggle/chaos-toggle.component';
 
@@ -10,75 +10,129 @@ import { ChaosToggleComponent } from '../chaos-toggle/chaos-toggle.component';
   imports: [CommonModule, RouterModule, ChaosToggleComponent],
   template: `
     <header class="app-header">
-      <div class="app-header__left">
-        <a routerLink="/pokedex" class="app-header__brand">
-          <span class="pokeball-icon"></span>
-          <span class="brand-text">Mini<strong>Pokédex</strong></span>
-        </a>
-
-        <nav class="app-header__nav">
-          <a routerLink="/pokedex" routerLinkActive="active" class="nav-link">Catalog</a>
-          <a routerLink="/teams" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">Teams</a>
-          <a routerLink="/teams/new" routerLinkActive="active" class="nav-link nav-link--highlight">+ Build Team</a>
-        </nav>
-      </div>
-
-      <div class="app-header__right">
-        <!-- Evaluator Chaos Simulator -->
-        <app-chaos-toggle />
-
-        <!-- User Profile / Auth State -->
-        @if (authService.isSignedIn()) {
-          <div class="user-badge">
-            <span class="user-badge__name">👤 {{ authService.currentUser()?.username }}</span>
-            <span class="user-badge__region">({{ authService.currentUser()?.region }})</span>
-            <button type="button" class="logout-btn" (click)="onLogout()" title="Sign out">
-              Logout
-            </button>
-          </div>
-        } @else {
-          <a routerLink="/auth/login" class="login-btn">
-            Sign In
+      <div class="app-header__bar">
+        <div class="app-header__left">
+          <a routerLink="/pokedex" class="app-header__brand" (click)="closeMobileMenu()">
+            <span class="pokeball-icon"></span>
+            <span class="brand-text">Mini<strong>Pokédex</strong></span>
           </a>
-        }
+
+          <!-- Desktop Navigation -->
+          <nav class="app-header__nav desktop-only">
+            <a routerLink="/pokedex" routerLinkActive="active" class="nav-link">Catalog</a>
+            <a routerLink="/teams" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">Teams</a>
+            <a routerLink="/teams/new" routerLinkActive="active" class="nav-link nav-link--highlight">+ Build Team</a>
+          </nav>
+        </div>
+
+        <div class="app-header__right">
+          <!-- Evaluator Chaos Simulator (always visible) -->
+          <app-chaos-toggle />
+
+          <!-- Desktop User Profile / Auth State -->
+          <div class="auth-box desktop-only">
+            @if (authService.isSignedIn()) {
+              <div class="user-badge">
+                <span class="user-badge__name">👤 {{ authService.currentUser()?.username }}</span>
+                <span class="user-badge__region">({{ authService.currentUser()?.region }})</span>
+                <button type="button" class="logout-btn" (click)="onLogout()" title="Sign out">
+                  Logout
+                </button>
+              </div>
+            } @else {
+              <a routerLink="/auth/login" class="login-btn">
+                Sign In
+              </a>
+            }
+          </div>
+
+          <!-- Mobile Hamburger Toggle -->
+          <button
+            type="button"
+            class="hamburger-btn mobile-only"
+            (click)="toggleMobileMenu()"
+            [attr.aria-expanded]="isMobileMenuOpen()"
+            aria-label="Toggle navigation menu"
+          >
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+          </button>
+        </div>
       </div>
+
+      <!-- Mobile Dropdown Navigation Menu -->
+      @if (isMobileMenuOpen()) {
+        <nav class="mobile-menu mobile-only">
+          <a routerLink="/pokedex" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">
+            📖 Catalog
+          </a>
+          <a routerLink="/teams" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="mobile-nav-link" (click)="closeMobileMenu()">
+            👥 Teams
+          </a>
+          <a routerLink="/teams/new" routerLinkActive="active" class="mobile-nav-link mobile-nav-link--highlight" (click)="closeMobileMenu()">
+            ➕ Build Team
+          </a>
+
+          <div class="mobile-menu__divider"></div>
+
+          @if (authService.isSignedIn()) {
+            <div class="mobile-user-row">
+              <span class="mobile-user-name">👤 {{ authService.currentUser()?.username }} ({{ authService.currentUser()?.region }})</span>
+              <button type="button" class="logout-btn logout-btn--full" (click)="onLogout()">
+                Logout
+              </button>
+            </div>
+          } @else {
+            <a routerLink="/auth/login" class="login-btn login-btn--full" (click)="closeMobileMenu()">
+              Sign In
+            </a>
+          }
+        </nav>
+      }
     </header>
   `,
   styles: [`
     .app-header {
-      height: 64px;
       background: var(--color-surface-2, #1e2121);
       border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
       position: sticky;
       top: 0;
       z-index: 1000;
 
+      &__bar {
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
       &__left, &__right {
         display: flex;
         align-items: center;
-        gap: 20px;
+        gap: 16px;
       }
 
       &__brand {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         text-decoration: none;
         color: #fff;
-        font-size: 1.25rem;
+        font-size: 1.15rem;
         font-weight: 500;
+        white-space: nowrap;
 
         strong {
           color: #ff3e3e;
         }
 
         .pokeball-icon {
-          width: 24px;
-          height: 24px;
+          width: 22px;
+          height: 22px;
           border-radius: 50%;
           background: linear-gradient(to bottom, #f00 50%, #fff 50%);
           border: 2px solid #222;
@@ -91,8 +145,8 @@ import { ChaosToggleComponent } from '../chaos-toggle/chaos-toggle.component';
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             background: #fff;
             border: 2px solid #222;
             border-radius: 50%;
@@ -103,14 +157,14 @@ import { ChaosToggleComponent } from '../chaos-toggle/chaos-toggle.component';
       &__nav {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
 
         .nav-link {
-          padding: 6px 14px;
+          padding: 6px 12px;
           border-radius: 6px;
           color: var(--color-text-muted, #9aa0a6);
           text-decoration: none;
-          font-size: 0.875rem;
+          font-size: 0.85rem;
           font-weight: 500;
           transition: all 0.2s;
 
@@ -140,7 +194,7 @@ import { ChaosToggleComponent } from '../chaos-toggle/chaos-toggle.component';
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 0.85rem;
+      font-size: 0.825rem;
       color: #fff;
 
       &__region {
@@ -157,6 +211,14 @@ import { ChaosToggleComponent } from '../chaos-toggle/chaos-toggle.component';
       cursor: pointer;
       text-decoration: none;
       transition: all 0.2s;
+      white-space: nowrap;
+
+      &--full {
+        width: 100%;
+        text-align: center;
+        padding: 10px;
+        box-sizing: border-box;
+      }
     }
 
     .logout-btn {
@@ -178,13 +240,109 @@ import { ChaosToggleComponent } from '../chaos-toggle/chaos-toggle.component';
         background: var(--color-primary-hover, #0062a3);
       }
     }
+
+    // Hamburger button
+    .hamburger-btn {
+      display: none;
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      padding: 6px;
+      cursor: pointer;
+      flex-direction: column;
+      gap: 4px;
+      width: 34px;
+      height: 32px;
+      justify-content: center;
+      align-items: center;
+
+      .bar {
+        width: 18px;
+        height: 2px;
+        background-color: #fff;
+        border-radius: 1px;
+      }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+    }
+
+    // Mobile menu dropdown
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      padding: 12px 16px 16px;
+      background: var(--color-surface-3, #2a2d2d);
+      border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+      gap: 8px;
+
+      &__divider {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.1);
+        margin: 6px 0;
+      }
+    }
+
+    .mobile-nav-link {
+      padding: 10px 14px;
+      border-radius: 6px;
+      color: #ddd;
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: background 0.15s;
+
+      &:hover, &.active {
+        background: rgba(0, 122, 204, 0.2);
+        color: #fff;
+      }
+
+      &--highlight {
+        color: var(--color-accent, #ffb414);
+        font-weight: 600;
+      }
+    }
+
+    .mobile-user-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mobile-user-name {
+      font-size: 0.85rem;
+      color: var(--color-text-muted, #9aa0a6);
+      padding: 4px 6px;
+    }
+
+    // Responsive media queries
+    .desktop-only { display: flex; }
+    .mobile-only { display: none; }
+
+    @media (max-width: 820px) {
+      .desktop-only { display: none !important; }
+      .mobile-only { display: flex !important; }
+      .app-header__bar { padding: 0 12px; }
+      .app-header__left, .app-header__right { gap: 10px; }
+    }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeaderComponent {
   readonly authService = inject(AuthService);
+  readonly isMobileMenuOpen = signal<boolean>(false);
+
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen.set(!this.isMobileMenuOpen());
+  }
+
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen.set(false);
+  }
 
   onLogout(): void {
+    this.closeMobileMenu();
     this.authService.signOut$().subscribe();
   }
 }

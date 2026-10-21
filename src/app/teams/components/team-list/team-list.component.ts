@@ -130,8 +130,13 @@ export class TeamListComponent implements OnInit {
     this.isAnalysisOpen.set(false);
   }
 
-  onDelete(team: Team, event?: Event): void {
+  onDelete(arg1: Team | Event, arg2?: Team | Event): void {
+    const event = (arg1 instanceof Event ? arg1 : arg2 instanceof Event ? arg2 : undefined);
+    const team = (arg1 instanceof Event ? (arg2 as Team) : (arg1 as Team));
+
     event?.stopPropagation();
+    if (!team || !team.id) return;
+
     if (confirm(`Are you sure you want to delete "${team.name}"?`)) {
       if (this.selectedTeamId() === team.id) {
         this.selectedTeamId.set(null);

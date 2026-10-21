@@ -56,6 +56,11 @@ import { ChaosService, ChaosMode } from '../../../core/services/chaos.service';
           border-color: var(--color-primary, #007acc);
         }
       }
+
+      @media (max-width: 600px) {
+        padding: 3px 6px;
+        &__label { display: none; }
+      }
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
