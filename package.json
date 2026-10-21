@@ -15,6 +15,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "vitest run",
     "test:watch": "vitest",
+    "docs:pdf": "node scripts/generate-pdf.js",
     "prepare": "husky"
   },
   "dependencies": {
@@ -57,6 +58,7 @@
     "concurrently": "^9.1.2",
     "husky": "^9.1.7",
     "jsdom": "^28.0.0",
+    "marked": "^18.1.1",
     "prettier": "^3.8.1",
     "tsx": "^4.19.3",
     "typescript": "~5.9.2",
