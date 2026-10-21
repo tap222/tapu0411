@@ -1,0 +1,82 @@
+@if (isOpen() && pokemon()) {
+  <div class="panel-backdrop" (click)="closePanel()"></div>
+  <aside class="detail-panel" role="dialog" aria-modal="true" [attr.aria-label]="pokemon()!.name + ' Details'">
+    <div class="detail-panel__header">
+      <button type="button" class="close-btn" (click)="closePanel()" aria-label="Close panel">
+        <img src="assets/icons/ic_arrow_left.svg" width="20" height="20" alt="" aria-hidden="true" />
+      </button>
+      <span class="detail-panel__id">#{{ pokemon()!.id | number:'3.0-0' }}</span>
+    </div>
+
+    <div class="detail-panel__body">
+      <!-- Artwork & Name -->
+      <div class="pokemon-hero">
+        <div class="pokemon-hero__image-wrap">
+          <img
+            [src]="pokemon()!.artworkUrl || pokemon()!.spriteUrl"
+            [alt]="pokemon()!.name"
+            class="pokemon-hero__img"
+            loading="lazy"
+          />
+        </div>
+        <h2 class="pokemon-hero__name">{{ pokemon()!.name }}</h2>
+        <div class="pokemon-hero__types">
+          @for (type of pokemon()!.types; track type) {
+            <span class="badge badge--{{ type }}">{{ type }}</span>
+          }
+        </div>
+      </div>
+
+      <!-- Dimensions -->
+      <div class="specs-grid">
+        <div class="spec-card">
+          <span class="spec-card__label">Height</span>
+          <span class="spec-card__val">{{ (pokemon()!.height / 10) | number:'1.1-1' }} m</span>
+        </div>
+        <div class="spec-card">
+          <span class="spec-card__label">Weight</span>
+          <span class="spec-card__val">{{ (pokemon()!.weight / 10) | number:'1.1-1' }} kg</span>
+        </div>
+        <div class="spec-card">
+          <span class="spec-card__label">Base Stat Total</span>
+          <span class="spec-card__val spec-card__val--highlight">{{ pokemon()!.totalStats }}</span>
+        </div>
+      </div>
+
+      <!-- Radar Chart -->
+      <section class="section-card">
+        <h3 class="section-card__title">Stat Distribution (Radar)</h3>
+        <div class="chart-container">
+          <div echarts [options]="chartOptions" class="radar-chart"></div>
+        </div>
+      </section>
+
+      <!-- Abilities List -->
+      <section class="section-card">
+        <h3 class="section-card__title">Abilities</h3>
+        @if (isLoadingAbilities()) {
+          <div class="abilities-skeleton">
+            <app-skeleton-loader height="40px" borderRadius="6px" />
+            <app-skeleton-loader height="40px" borderRadius="6px" />
+          </div>
+        } @else if (pokemon()!.abilities && pokemon()!.abilities!.length > 0) {
+          <div class="abilities-list">
+            @for (ability of pokemon()!.abilities; track ability.name) {
+              <div class="ability-item" [class.ability-item--hidden]="ability.is_hidden">
+                <div class="ability-item__top">
+                  <span class="ability-item__name">{{ ability.name }}</span>
+                  @if (ability.is_hidden) {
+                    <span class="ability-item__tag">Hidden</span>
+                  }
+                </div>
+                <p class="ability-item__desc">{{ ability.short_effect }}</p>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-abilities">No ability information available.</p>
+        }
+      </section>
+    </div>
+  </aside>
+}

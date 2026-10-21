@@ -1,0 +1,146 @@
+<section class="pokedex-page">
+  <!-- Controls Bar -->
+  <div class="controls-bar">
+    <div class="search-box">
+      <img src="assets/icons/ic_search.svg" class="search-box__icon" alt="" aria-hidden="true" />
+      <input
+        type="text"
+        class="search-box__input"
+        placeholder="Search Pokémon by name or ID..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchChange($event)"
+      />
+      @if (searchQuery()) {
+        <button type="button" class="search-box__clear" (click)="clearSearch()" aria-label="Clear search">
+          <img src="assets/icons/ic_close.svg" width="14" height="14" alt="" aria-hidden="true" />
+        </button>
+      }
+    </div>
+
+    <div class="filter-group">
+      <label for="typeFilter" class="filter-label">Type:</label>
+      <select
+        id="typeFilter"
+        class="filter-select"
+        [ngModel]="selectedType()"
+        (ngModelChange)="onTypeChange($event)"
+      >
+        @for (type of pokemonTypes; track type) {
+          <option [value]="type">{{ type | titlecase }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="count-badge">
+      <span>{{ pokemonList().length }} Loaded</span>
+    </div>
+  </div>
+
+  <!-- 4-State Data View Shell -->
+  <app-data-state-view
+    [isLoading]="isLoading() && pokemonList().length === 0"
+    [isEmpty]="isEmpty()"
+    [error]="error()"
+    emptyTitle="No Pokémon Found"
+    emptyMessage="No Pokémon match your search or filter criteria. Try clearing filters."
+    (retry)="onRetry()"
+  >
+    <!-- Initial Loading Skeleton Projection -->
+    <div loadingState class="table-skeleton">
+      @for (i of [1,2,3,4,5,6,7,8]; track i) {
+        <div class="skeleton-row">
+          <app-skeleton-loader width="40px" height="40px" borderRadius="50%" />
+          <app-skeleton-loader width="120px" height="20px" />
+          <app-skeleton-loader width="80px" height="20px" borderRadius="12px" />
+          <app-skeleton-loader width="50px" height="20px" />
+          <app-skeleton-loader width="50px" height="20px" />
+          <app-skeleton-loader width="50px" height="20px" />
+        </div>
+      }
+    </div>
+
+    <!-- Success View: Table Header + CDK Virtual Scroll Viewport -->
+    <div class="table-container">
+      <div class="table-header">
+        <div class="th col-id" (click)="sortBy('id')">
+          # @if (sortField() === 'id') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+        </div>
+        <div class="th col-sprite">Sprite</div>
+        <div class="th col-name" (click)="sortBy('name')">
+          Name @if (sortField() === 'name') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+        </div>
+        <div class="th col-types">Types</div>
+        <div class="th col-stat" (click)="sortBy('hp')">
+          HP @if (sortField() === 'hp') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+        </div>
+        <div class="th col-stat" (click)="sortBy('attack')">
+          Atk @if (sortField() === 'attack') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+        </div>
+        <div class="th col-stat" (click)="sortBy('defense')">
+          Def @if (sortField() === 'defense') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+        </div>
+        <div class="th col-stat" (click)="sortBy('specialAttack')">
+          Sp.Atk @if (sortField() === 'specialAttack') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+        </div>
+        <div class="th col-stat" (click)="sortBy('specialDefense')">
+          Sp.Def @if (sortField() === 'specialDefense') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+        </div>
+        <div class="th col-stat" (click)="sortBy('speed')">
+          Spd @if (sortField() === 'speed') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+        </div>
+        <div class="th col-total" (click)="sortBy('totalStats')">
+          Total @if (sortField() === 'totalStats') { {{ sortDirection() === 'asc' ? '▲' : '▼' }} }
+        </div>
+      </div>
+
+      <cdk-virtual-scroll-viewport itemSize="64" class="viewport">
+        <div
+          *cdkVirtualFor="let p of pokemonList(); trackBy: trackById"
+          class="table-row"
+          (click)="onSelectPokemon(p)"
+          tabindex="0"
+          role="button"
+          (keydown.enter)="onSelectPokemon(p)"
+        >
+          <div class="td col-id">#{{ p.id }}</div>
+          <div class="td col-sprite">
+            <img [src]="p.spriteUrl" [alt]="p.name" class="pokemon-sprite" loading="lazy" />
+          </div>
+          <div class="td col-name font-semibold">{{ p.name }}</div>
+          <div class="td col-types">
+            <div class="badge-list">
+              @for (type of p.types; track type) {
+                <span class="badge badge--{{ type }}">{{ type }}</span>
+              }
+            </div>
+          </div>
+          <div class="td col-stat">{{ p.hp }}</div>
+          <div class="td col-stat">{{ p.attack }}</div>
+          <div class="td col-stat">{{ p.defense }}</div>
+          <div class="td col-stat">{{ p.specialAttack }}</div>
+          <div class="td col-stat">{{ p.specialDefense }}</div>
+          <div class="td col-stat">{{ p.speed }}</div>
+          <div class="td col-total font-semibold text-accent">{{ p.totalStats }}</div>
+        </div>
+
+        <!-- Infinite Scroll Sentinel & Append Loader -->
+        <div #scrollSentinel class="scroll-sentinel">
+          @if (isLoading() && pokemonList().length > 0) {
+            <div class="append-loading">
+              <span class="spinner-small"></span>
+              <span>Loading next batch...</span>
+            </div>
+          }
+        </div>
+      </cdk-virtual-scroll-viewport>
+    </div>
+  </app-data-state-view>
+
+  <!-- Slide-In Detail Panel with Animated Radar Chart -->
+  <app-pokemon-detail-panel
+    [pokemon]="selectedPokemon()"
+    [isOpen]="isDetailOpen()"
+    [isLoadingAbilities]="isLoadingAbilities()"
+    (closed)="closeDetail()"
+  />
+</section>
