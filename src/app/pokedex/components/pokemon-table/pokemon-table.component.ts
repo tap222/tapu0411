@@ -6,6 +6,7 @@ import {
   ElementRef,
   OnInit,
   computed,
+  effect,
   inject,
   signal,
   viewChild,
@@ -107,16 +108,59 @@ export class PokemonTableComponent implements OnInit, AfterViewInit {
     'fairy',
   ];
 
+  // Viewport reference for CDK Virtual Scroll
+  private readonly viewport = viewChild(CdkVirtualScrollViewport);
+
   // Sentinel anchor for infinite scroll prefetching
   private readonly scrollSentinel = viewChild<ElementRef<HTMLElement>>('scrollSentinel');
   private sentinelObserver?: IntersectionObserver;
 
+  constructor() {
+    // Automatically recalculate CDK viewport size whenever the Pokémon list updates
+    effect(() => {
+      const list = this.pokemonList();
+      if (list.length > 0) {
+        requestAnimationFrame(() => {
+          this.viewport()?.checkViewportSize();
+        });
+      }
+    });
+  }
+
   ngOnInit(): void {
-    this.store.loadInitial(30);
+    this.store.loadInitial(40);
   }
 
   ngAfterViewInit(): void {
+    this.setupViewportAutoResize();
     this.setupInfiniteScrollObserver();
+  }
+
+  private setupViewportAutoResize(): void {
+    // 1. Initial size check after view is mounted
+    requestAnimationFrame(() => {
+      this.viewport()?.checkViewportSize();
+    });
+
+    // 2. Window / container resize observer to dynamically adjust virtual scroll height
+    const vpEl = this.viewport()?.elementRef?.nativeElement;
+    if (vpEl && typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => {
+        this.viewport()?.checkViewportSize();
+      });
+      ro.observe(vpEl);
+      this.destroyRef.onDestroy(() => ro.disconnect());
+    }
+
+    // 3. Proactive scroll index change listener as secondary infinite-scroll trigger
+    this.viewport()
+      ?.scrolledIndexChange.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((index) => {
+        const total = this.pokemonList().length;
+        if (total > 0 && index >= total - 12 && !this.isLoading() && this.store.snapshot.hasMore) {
+          this.store.loadNextBatch(25);
+        }
+      });
   }
 
   private setupInfiniteScrollObserver(): void {

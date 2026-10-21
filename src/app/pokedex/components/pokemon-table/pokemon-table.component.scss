@@ -125,6 +125,7 @@
 }
 
 .table-header {
+  box-sizing: border-box;
   display: grid;
   grid-template-columns: 60px 60px 1.5fr 1.2fr repeat(6, 0.8fr) 1fr;
   align-items: center;
@@ -158,6 +159,8 @@
 }
 
 .table-row {
+  box-sizing: border-box;
+  contain: content;
   display: grid;
   grid-template-columns: 60px 60px 1.5fr 1.2fr repeat(6, 0.8fr) 1fr;
   align-items: center;

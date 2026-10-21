@@ -93,7 +93,12 @@
         </div>
       </div>
 
-      <cdk-virtual-scroll-viewport itemSize="64" class="viewport">
+      <cdk-virtual-scroll-viewport
+        [itemSize]="64"
+        [minBufferPx]="800"
+        [maxBufferPx]="1600"
+        class="viewport"
+      >
         <div
           *cdkVirtualFor="let p of pokemonList(); trackBy: trackById"
           class="table-row"
