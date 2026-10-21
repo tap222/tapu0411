@@ -36,6 +36,31 @@ const GET_POKEMON_QUERY = /* GraphQL */ `
   }
 `;
 
+const GET_POKEMON_BY_IDS_QUERY = /* GraphQL */ `
+  query GetPokemonByIds($ids: [Int!]!) {
+    pokemon_v2_pokemon(where: { id: { _in: $ids } }) {
+      id
+      name
+      height
+      weight
+      pokemon_v2_pokemontypes {
+        pokemon_v2_type {
+          name
+        }
+      }
+      pokemon_v2_pokemonstats {
+        base_stat
+        pokemon_v2_stat {
+          name
+        }
+      }
+      pokemon_v2_pokemonsprites {
+        sprites
+      }
+    }
+  }
+`;
+
 const GET_ABILITIES_QUERY = /* GraphQL */ `
   query GetAbilities($pokemonId: Int) {
     pokemon_v2_pokemonability(where: { pokemon_id: { _eq: $pokemonId } }) {
@@ -92,6 +117,29 @@ export class PokeApiGraphQLService {
         catchError((error) => {
           return throwError(() => error);
         }),
+      );
+  }
+
+  /**
+   * Fetches multiple Pokémon by an array of IDs.
+   *
+   * @param ids Array of Pokémon IDs
+   */
+  getPokemonByIds$(ids: number[]): Observable<Pokemon[]> {
+    if (!ids || ids.length === 0) return of([]);
+
+    return this.http
+      .post<PokeApiPokemonResponse>(environment.pokeApiGraphqlUrl, {
+        query: GET_POKEMON_BY_IDS_QUERY,
+        variables: { ids },
+      })
+      .pipe(
+        retry({ count: 2, delay: 1000 }),
+        map((response) => {
+          const items = response.data?.pokemon_v2_pokemon || [];
+          return items.map((item) => this.mapPokemonItem(item));
+        }),
+        catchError(() => of([])),
       );
   }
 

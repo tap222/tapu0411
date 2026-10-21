@@ -137,6 +137,40 @@ export class PokemonStore {
   }
 
   /**
+   * Ensures that specific Pokémon IDs are fetched and stored in the catalog.
+   * Useful for displaying team roster details.
+   *
+   * @param ids Array of Pokémon IDs
+   */
+  ensurePokemonLoaded(ids: number[]): void {
+    const missing = ids.filter((id) => !this.snapshot.pokemonMap[id]);
+    if (missing.length === 0) return;
+
+    this.pokeApiService
+      .getPokemonByIds$(missing)
+      .pipe(
+        tap((items) => {
+          if (items.length === 0) return;
+          const updatedMap = { ...this.snapshot.pokemonMap };
+          const updatedIds = [...this.snapshot.ids];
+
+          items.forEach((p) => {
+            if (!updatedMap[p.id]) {
+              updatedMap[p.id] = p;
+              updatedIds.push(p.id);
+            }
+          });
+
+          this.updateState({
+            pokemonMap: updatedMap,
+            ids: updatedIds,
+          });
+        }),
+      )
+      .subscribe();
+  }
+
+  /**
    * Selects a Pokémon and fetches its abilities.
    *
    * @param id Pokémon ID
