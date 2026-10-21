@@ -1,0 +1,88 @@
+// src/styles.scss — Global design tokens & base per DEVELOPER_GUIDE.md
+@use './app/common/styles/shared' as *;
+
+:root {
+  --color-primary: #007acc;
+  --color-primary-hover: #0062a3;
+  --color-secondary: #6c757d;
+  --color-accent: #ffb414;
+  --color-success: #28a745;
+  --color-danger: #dc3545;
+  --color-warning: #ffc107;
+  --color-surface: #131515;
+  --color-surface-2: #1e2121;
+  --color-surface-3: #2a2d2d;
+  --color-surface-overlay: rgba(19, 21, 21, 0.85);
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-text-main: #ffffff;
+  --color-text-muted: #9aa0a6;
+  --panel-width: 393px;
+  --backdrop-blur: blur(16px);
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  background-color: #111212;
+  height: 100%;
+}
+
+body {
+  color-scheme: dark;
+  background-color: var(--color-surface, #131515);
+  color: var(--color-text-main, #ffffff);
+  margin: 0;
+  height: 100%;
+  font-family: var(--font-family);
+  -webkit-font-smoothing: antialiased;
+}
+
+// Pokemon type colors
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+  color: #fff;
+  line-height: 1.4;
+
+  &--normal { background-color: #a8a878; }
+  &--fire { background-color: #f08030; }
+  &--water { background-color: #6890f0; }
+  &--grass { background-color: #78c850; }
+  &--electric { background-color: #f8d030; color: #111; }
+  &--ice { background-color: #98d8d8; color: #111; }
+  &--fighting { background-color: #c03028; }
+  &--poison { background-color: #a040a0; }
+  &--ground { background-color: #e0c068; color: #111; }
+  &--flying { background-color: #a890f0; }
+  &--psychic { background-color: #f85888; }
+  &--bug { background-color: #a8b820; }
+  &--rock { background-color: #b8a038; }
+  &--ghost { background-color: #705898; }
+  &--dragon { background-color: #7038f8; }
+  &--steel { background-color: #b8b8d0; color: #111; }
+  &--fairy { background-color: #ee99ac; }
+  &--dark { background-color: #705848; }
+}
+
+// Scrollbars
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
