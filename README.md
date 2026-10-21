@@ -2,6 +2,8 @@
 
 > Enterprise-grade Single Page Application built with **Angular 21**, **Signals**, **RxJS Custom Store**, **TypeScript + TypeORM + SQLite Backend**, **GraphQL Resolvers**, and **JWT Authentication**.
 
+📖 **Full Whitepaper & Architecture Specification**: See [ENTERPRISE_SYSTEM_SPECIFICATION.md](ENTERPRISE_SYSTEM_SPECIFICATION.md) for complete documentation covering Business Problem Statement, Security Architecture, Microservices Decoupling, Virtual Scrolling Optimization, and Chaos Engineering.
+
 ---
 
 ## 🌟 Key Architecture & Features
