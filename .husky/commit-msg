@@ -1,0 +1,2 @@
+export PATH="/Users/tapasmohanty/.nvm/versions/node/v22.23.2/bin:$PATH"
+npx --no -- commitlint --edit "$1"
