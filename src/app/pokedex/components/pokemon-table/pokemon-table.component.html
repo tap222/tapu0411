@@ -1,4 +1,4 @@
-<section class="pokedex-page">
+<section class="pokedex-page" [class.pokedex-page--panel-open]="isDetailOpen()">
   <!-- Controls Bar -->
   <div class="controls-bar">
     <div class="search-box">
@@ -97,6 +97,7 @@
         <div
           *cdkVirtualFor="let p of pokemonList(); trackBy: trackById"
           class="table-row"
+          [class.table-row--selected]="selectedPokemon()?.id === p?.id && isDetailOpen()"
           (click)="onSelectPokemon(p)"
           tabindex="0"
           role="button"

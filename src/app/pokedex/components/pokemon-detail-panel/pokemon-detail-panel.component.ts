@@ -68,6 +68,8 @@ export class PokemonDetailPanelComponent implements OnChanges {
         ],
         shape: 'polygon',
         splitNumber: 4,
+        axisTick: { show: false },
+        axisLabel: { show: false },
         axisName: {
           color: '#9aa0a6',
           fontSize: 11,

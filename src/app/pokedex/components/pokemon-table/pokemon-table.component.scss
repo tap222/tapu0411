@@ -2,6 +2,13 @@
   padding: 24px;
   max-width: 1400px;
   margin: 0 auto;
+  transition: padding-right 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &--panel-open {
+    @media (min-width: 900px) {
+      padding-right: calc(var(--panel-width, 393px) + 32px);
+    }
+  }
 }
 
 .controls-bar {
@@ -152,6 +159,11 @@
   &:focus {
     outline: none;
     background: rgba(0, 122, 204, 0.18);
+  }
+
+  &--selected {
+    background: rgba(0, 122, 204, 0.22) !important;
+    border-left: 3px solid var(--color-primary, #007acc);
   }
 
   .pokemon-sprite {
