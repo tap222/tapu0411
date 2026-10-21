@@ -20,6 +20,11 @@ import { BehaviorSubject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { TeamStore } from '../../state/team.store';
 import { PokemonStore } from '../../../pokedex/state/pokemon.store';
 import { selectAllPokemon$ } from '../../../pokedex/state/pokemon.selectors';
+import {
+  calculateTeamTotalStats,
+  calculateTypeDistribution,
+  filterAvailablePokemon,
+} from '../../../common/utils/team-analytics.utils';
 import { Pokemon } from '../../../pokedex/models/pokemon.model';
 import { uniqueTeamNameValidator } from '../../validators/team-name.validator';
 import { AuthService } from '../../../core/auth/services/auth.service';
@@ -50,35 +55,20 @@ export class TeamBuilderComponent implements OnInit {
   // All loaded Pokémon from store
   readonly allPokemon = toSignal(selectAllPokemon$(this.pokemonStore), { initialValue: [] });
 
-  // Filtered typeahead results
+  // Filtered typeahead results using pure functional query utility
   readonly filteredTypeahead = computed(() => {
-    const q = this.pickerQuery().toLowerCase().trim();
-    if (!q) return [];
-    const currentIds = new Set(this.selectedPokemon().map((p) => p.id));
-    return this.allPokemon()
-      .filter((p) => !currentIds.has(p.id))
-      .filter((p) => p.name.toLowerCase().includes(q) || String(p.id).includes(q))
-      .slice(0, 8);
+    const selectedIds = new Set(this.selectedPokemon().map((p) => p.id));
+    return filterAvailablePokemon(this.allPokemon(), selectedIds, this.pickerQuery(), 8);
   });
 
   // Computed Team Base Stat Aggregate per Signals requirements
   readonly totalTeamBaseStats = computed(() => {
-    return this.selectedPokemon().reduce((sum, p) => sum + p.totalStats, 0);
+    return calculateTeamTotalStats(this.selectedPokemon());
   });
 
   // Computed Type Distribution per Signals requirements
   readonly teamTypeDistribution = computed(() => {
-    const distribution: Record<string, number> = {};
-    for (const p of this.selectedPokemon()) {
-      for (const t of p.types) {
-        distribution[t] = (distribution[t] || 0) + 1;
-      }
-    }
-    return Object.entries(distribution).map(([type, count]) => ({
-      type,
-      count,
-      percent: Math.round((count / (this.selectedPokemon().length || 1)) * 100),
-    }));
+    return calculateTypeDistribution(this.selectedPokemon());
   });
 
   teamForm!: FormGroup;

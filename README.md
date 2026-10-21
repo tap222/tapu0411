@@ -49,6 +49,13 @@
 2. **Tier 2 - Persistent Browser Storage**: `CacheService` backing active session tokens and teams with TTL expiry.
 3. **Tier 3 - Sprite Preload Cache**: In-app memory map caching decoded sprite objects.
 
+### 5. Pure Functional Programming & Named Function Extraction
+- All business calculations extracted into pure, immutable functions in `src/app/common/utils/team-analytics.utils.ts` (`calculateTeamTotalStats`, `calculateTeamAverageStats`, `calculateTypeDistribution`, `filterAvailablePokemon`).
+- Zero side-effects, immutable data structures (`readonly`), and complete unit test coverage (17 dedicated tests).
+
+### 6. Operational Runbook & Customer Support Playbook
+- See [OPERATIONAL_RUNBOOK.md](OPERATIONAL_RUNBOOK.md) for root-cause analyses on async race condition mitigations (`switchMap`), cache drift prevention, and non-code support workarounds (cache flush, evaluator chaos reset, and database re-seeding).
+
 ---
 
 ## 🚀 Quick Start Guide
@@ -88,12 +95,14 @@ npm test
 npm run test:watch
 ```
 
-### Test Coverage Highlights:
-- ✅ **Optimistic Store Rollback** (`team.store.spec.ts`): Verifies immediate UI update and automatic rollback to snapshot on server error.
-- ✅ **Derived Selectors** (`pokemon.selectors.spec.ts`): Verifies query debouncing, type filtering, and multi-stat sorting.
-- ✅ **Async Form Validator** (`team-name.validator.spec.ts`): Tests 300ms debounced team name uniqueness checks.
-- ✅ **Multi-Tier Cache** (`cache.service.spec.ts`): Verifies in-memory retrieval and TTL expiration.
-- ✅ **Root Application** (`app.spec.ts`): Verifies component initialization.
+### Test Coverage Highlights (36 Tests Passing):
+- ✅ **Pure Functional Analytics Utilities** (`team-analytics.utils.spec.ts` - 17 tests): Tests total stat calculations, average base stat rounding, dual-type distribution percentages, sorting, immutability, and typeahead candidate filtering.
+- ✅ **Evaluator Chaos Simulator & Interceptors** (`chaos.service.spec.ts` - 5 tests): Verifies latency injection, network error simulation, and HTTP pass-through.
+- ✅ **Optimistic Store Rollback** (`team.store.spec.ts` - 3 tests): Verifies immediate UI update and automatic rollback to snapshot on server error.
+- ✅ **Derived Selectors** (`pokemon.selectors.spec.ts` - 3 tests): Verifies query debouncing, type filtering, and multi-stat sorting.
+- ✅ **Async Form Validator** (`team-name.validator.spec.ts` - 3 tests): Tests 300ms debounced team name uniqueness checks.
+- ✅ **Multi-Tier Cache** (`cache.service.spec.ts` - 4 tests): Verifies in-memory retrieval, key removal, and TTL expiration.
+- ✅ **Root Application** (`app.spec.ts` - 1 test): Verifies component initialization.
 
 ---
 

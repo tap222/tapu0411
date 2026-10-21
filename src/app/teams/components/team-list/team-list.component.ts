@@ -18,6 +18,11 @@ import { Pokemon } from '../../../pokedex/models/pokemon.model';
 import { DataStateViewComponent } from '../../../common/components/data-state-view/data-state-view.component';
 import { SkeletonLoaderComponent } from '../../../common/components/skeleton-loader/skeleton-loader.component';
 import { PokemonStore } from '../../../pokedex/state/pokemon.store';
+import {
+  calculateTeamTotalStats,
+  calculateTeamAverageStats,
+  calculateTypeDistribution,
+} from '../../../common/utils/team-analytics.utils';
 
 @Component({
   selector: 'app-team-list',
@@ -77,27 +82,15 @@ export class TeamListComponent implements OnInit {
   });
 
   readonly teamTotalBaseStats = computed(() => {
-    return this.selectedTeamPokemon().reduce((sum, p) => sum + p.totalStats, 0);
+    return calculateTeamTotalStats(this.selectedTeamPokemon());
   });
 
   readonly teamAvgStats = computed(() => {
-    const count = this.selectedTeamPokemon().length;
-    return count > 0 ? Math.round(this.teamTotalBaseStats() / count) : 0;
+    return calculateTeamAverageStats(this.selectedTeamPokemon());
   });
 
   readonly teamTypeDistribution = computed(() => {
-    const dist: Record<string, number> = {};
-    for (const p of this.selectedTeamPokemon()) {
-      for (const t of p.types) {
-        dist[t] = (dist[t] || 0) + 1;
-      }
-    }
-    const total = this.selectedTeamPokemon().length || 1;
-    return Object.entries(dist).map(([type, count]) => ({
-      type,
-      count,
-      percent: Math.round((count / total) * 100),
-    }));
+    return calculateTypeDistribution(this.selectedTeamPokemon());
   });
 
   constructor() {
