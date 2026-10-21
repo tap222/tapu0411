@@ -1,0 +1,78 @@
+<section class="teams-page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Pokémon Teams</h1>
+      <p class="page-subtitle">Squads persisted with SQLite TypeORM and authenticated via JWT</p>
+    </div>
+    <a routerLink="/teams/new" class="create-btn">
+      <img src="assets/icons/ic_add.svg" width="18" height="18" alt="" aria-hidden="true" />
+      <span>Build New Team</span>
+    </a>
+  </div>
+
+  <app-data-state-view
+    [isLoading]="isLoading() && teams().length === 0"
+    [isEmpty]="!isLoading() && !error() && teams().length === 0"
+    [error]="error()"
+    emptyTitle="No Teams Created Yet"
+    emptyMessage="You haven't built any teams yet. Create your first squad now!"
+    (retry)="onRetry()"
+  >
+    <div loadingState class="teams-grid-skeleton">
+      @for (i of [1,2,3]; track i) {
+        <div class="skeleton-card">
+          <app-skeleton-loader height="24px" width="60%" />
+          <app-skeleton-loader height="16px" width="40%" />
+          <app-skeleton-loader height="50px" width="100%" borderRadius="8px" />
+        </div>
+      }
+    </div>
+
+    <div class="teams-grid">
+      @for (team of teams(); track team.id) {
+        <article class="team-card">
+          <div class="team-card__top">
+            <div>
+              <h2 class="team-card__name">{{ team.name }}</h2>
+              <div class="team-card__meta">
+                <span class="trainer-name">Trainer: {{ team.trainer?.name || 'Ash Ketchum' }}</span>
+                <span class="meta-dot">•</span>
+                <span class="region">{{ team.trainer?.region || 'Kanto' }}</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="delete-btn"
+              (click)="onDelete(team)"
+              title="Delete team (Optimistic)"
+              aria-label="Delete team"
+            >
+              <img src="assets/icons/ic_delete.svg" width="16" height="16" alt="" aria-hidden="true" />
+            </button>
+          </div>
+
+          <div class="roster-preview">
+            <span class="roster-preview__label">Roster ({{ team.pokemon_ids.length }} Pokémon):</span>
+            <div class="roster-chips">
+              @for (id of team.pokemon_ids; track id) {
+                <div class="mini-chip" [title]="getPokemon(id)?.name || ('Pokémon #' + id)">
+                  <img
+                    [src]="getPokemon(id)?.spriteUrl || ('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + id + '.png')"
+                    [alt]="getPokemon(id)?.name || ('#' + id)"
+                    class="mini-chip__img"
+                    loading="lazy"
+                  />
+                  <span class="mini-chip__name">#{{ id }} {{ getPokemon(id)?.name }}</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="team-card__bottom">
+            <span class="created-at">Created: {{ team.created_at | date:'mediumDate' }}</span>
+          </div>
+        </article>
+      }
+    </div>
+  </app-data-state-view>
+</section>

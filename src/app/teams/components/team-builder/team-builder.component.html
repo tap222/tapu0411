@@ -1,0 +1,143 @@
+<section class="team-builder-page">
+  <div class="team-builder-card">
+    <div class="team-builder-header">
+      <a routerLink="/teams" class="back-link">
+        <img src="assets/icons/ic_arrow_left.svg" width="18" height="18" alt="" aria-hidden="true" />
+        <span>Back to Teams</span>
+      </a>
+      <h1 class="page-title">Build a New Team</h1>
+      <p class="page-subtitle">Assemble a squad of 1 to 6 Pokémon with live synergy & stat metrics</p>
+    </div>
+
+    <form [formGroup]="teamForm" (ngSubmit)="onSubmit()" class="builder-form" novalidate>
+      <!-- 1. Team Name Input with Async Validation -->
+      <div class="form-group">
+        <label for="teamName" class="form-label">Team Name</label>
+        <div class="input-wrapper">
+          <input
+            id="teamName"
+            type="text"
+            formControlName="name"
+            class="form-control"
+            placeholder="e.g., Champions of Kanto"
+            maxlength="30"
+          />
+          @if (teamForm.get('name')?.pending) {
+            <span class="validating-spinner" title="Checking uniqueness..."></span>
+          }
+        </div>
+
+        <!-- Inline Errors respecting dirty / touched state -->
+        @if (teamForm.get('name')?.touched || teamForm.get('name')?.dirty) {
+          @if (teamForm.get('name')?.errors?.['required']) {
+            <p class="field-error">Team name is required.</p>
+          }
+          @if (teamForm.get('name')?.errors?.['minlength']) {
+            <p class="field-error">Team name must be at least 3 characters.</p>
+          }
+          @if (teamForm.get('name')?.errors?.['maxlength']) {
+            <p class="field-error">Team name cannot exceed 30 characters.</p>
+          }
+          @if (teamForm.get('name')?.errors?.['teamNameTaken']) {
+            <p class="field-error">This team name is already taken. Please pick another.</p>
+          }
+        }
+      </div>
+
+      <!-- 2. Typeahead Pokémon Picker -->
+      <div class="form-group">
+        <div class="picker-label-row">
+          <label for="pokemonPicker" class="form-label">Squad Roster</label>
+          <span class="roster-count" [class.roster-count--full]="selectedPokemon().length === 6">
+            {{ selectedPokemon().length }} / 6 Pokémon
+          </span>
+        </div>
+
+        <div class="autocomplete-container">
+          <input
+            id="pokemonPicker"
+            type="text"
+            class="form-control autocomplete-input"
+            placeholder="Search & add Pokémon by name..."
+            [value]="pickerQuery()"
+            (input)="onPickerInput($event)"
+            [disabled]="selectedPokemon().length >= 6"
+          />
+
+          <!-- Autocomplete Dropdown List -->
+          @if (isDropdownOpen() && filteredTypeahead().length > 0) {
+            <div class="autocomplete-dropdown">
+              @for (p of filteredTypeahead(); track p.id) {
+                <div class="autocomplete-item" (click)="addPokemon(p)">
+                  <img [src]="p.spriteUrl" [alt]="p.name" class="item-sprite" />
+                  <span class="item-name">{{ p.name }}</span>
+                  <div class="item-types">
+                    @for (t of p.types; track t) {
+                      <span class="badge badge--{{ t }}">{{ t }}</span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        @if (selectedPokemon().length === 0 && teamForm.touched) {
+          <p class="field-error">Please add at least 1 Pokémon to your team.</p>
+        }
+
+        <!-- Selected Pokémon Chips (Min 1, Max 6) -->
+        <div class="chips-container">
+          @for (p of selectedPokemon(); track p.id) {
+            <div class="pokemon-chip">
+              <img [src]="p.spriteUrl" [alt]="p.name" class="chip-sprite" />
+              <div class="chip-info">
+                <span class="chip-name">{{ p.name }}</span>
+                <span class="chip-stat">Stat: {{ p.totalStats }}</span>
+              </div>
+              <button
+                type="button"
+                class="chip-remove"
+                (click)="removePokemon(p.id)"
+                aria-label="Remove Pokémon"
+              >
+                &times;
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- 3. Real-Time Computed Signals Metrics -->
+      @if (selectedPokemon().length > 0) {
+        <div class="computed-metrics">
+          <div class="metric-box">
+            <span class="metric-box__label">Combined Base Stats</span>
+            <span class="metric-box__val">{{ totalTeamBaseStats() }}</span>
+          </div>
+          <div class="metric-box metric-box--wide">
+            <span class="metric-box__label">Type Distribution (Synergy)</span>
+            <div class="type-pills">
+              @for (item of teamTypeDistribution(); track item.type) {
+                <span class="type-pill badge--{{ item.type }}">
+                  {{ item.type }}: {{ item.count }} ({{ item.percent }}%)
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Submit Action with Optimistic Flow -->
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="submit-btn"
+          [disabled]="teamForm.invalid || selectedPokemon().length === 0 || teamStore.snapshot.isSaving"
+        >
+          {{ teamStore.snapshot.isSaving ? 'Creating Team...' : 'Create Team (Optimistic)' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
